@@ -1,6 +1,9 @@
-package components;
+package entities;
 
 import java.util.Date;
+
+import crud.Register;
+import utils.csv.DateParser;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -8,59 +11,33 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import java.text.SimpleDateFormat;
-
-import components.abstracts.Register;
-
 public class Show implements Register {
    private int showId;
    private String type;
    private String title;
    private String directors;
-   private String cast;
-   private String listedIn;
-   private String country;
    private Date dateAdded;
    private short releaseYear;
-   private String rating;
    private String duration;
+   private String listedIn;
    private String description;
 
    // Constructors
 
    public Show() {
-      this(-1, "", "", "", "", "", "", new Date(), (short)-1, "", "", "");
+      this(-1, "", "", "", new Date(), (short)-1, "", "", "");
    }
 
-   public Show(int showId, String type, String title, String directors, String cast, String listedIn,
-   String country, Date dateAdded, short releaseYear, String rating, String duration, String description) {
+   public Show(int showId, String type, String title, String directors, Date dateAdded, short releaseYear, String duration, String listedIn, String description) {
       this.showId = showId;
       this.type = type;
       this.title = title;
       this.directors = directors;
-      this.cast = cast;
       this.listedIn = listedIn;
-      this.country = country;
       this.dateAdded = dateAdded;
       this.releaseYear = releaseYear;
-      this.rating = rating;
       this.duration = duration;
       this.description = description;
-   }
-
-   public Show(String[] arr) {
-      this.showId = Integer.parseInt(arr[0].substring(1));
-      this.type = arr[1];
-      this.title = arr[2];
-      this.directors = arr[3];
-      this.cast = arr[4];
-      this.listedIn = arr[5];
-      this.country = arr[6];
-      this.dateAdded =  arr[7];
-      this.releaseYear = arr[8];
-      this.rating = arr[9];
-      this.duration = arr[10];
-      this.description = arr[11];
    }
 
    // Getters
@@ -81,16 +58,8 @@ public class Show implements Register {
       return directors;
    }
 
-   public String getCast() {
-      return cast;
-   }
-
    public String getListedIn() {
       return listedIn;
-   }
-
-   public String getCountry() {
-      return country;
    }
 
    public Date getDateAdded() {
@@ -99,10 +68,6 @@ public class Show implements Register {
 
    public short getReleaseYear() {
       return releaseYear;
-   }
-
-   public String getRating() {
-      return rating;
    }
 
    public String getDuration() {
@@ -132,16 +97,8 @@ public class Show implements Register {
       this.directors = directors;
    }
 
-   public void setCast(String cast) {
-      this.cast = cast;
-   }
-
    public void setListedIn(String listedIn) {
       this.listedIn = listedIn;
-   }
-
-   public void setCountry(String country) {
-      this.country = country;
    }
 
    public void setDateAdded(Date dateAdded) {
@@ -150,10 +107,6 @@ public class Show implements Register {
 
    public void setReleaseYear(short releaseYear) {
       this.releaseYear = releaseYear;
-   }
-
-   public void setRating(String rating) {
-      this.rating = rating;
    }
 
    public void setDuration(String duration) {
@@ -167,6 +120,19 @@ public class Show implements Register {
    // Methods
 
    @Override
+   public void from(String... arr) {
+      this.showId = Integer.parseInt(arr[0].substring(1));
+      this.type = arr[1];
+      this.title = arr[2];
+      this.directors = arr[3];
+      this.dateAdded = new DateParser(arr[4]).getDate();
+      this.releaseYear = (short)Integer.parseInt(arr[5]);
+      this.duration = arr[6];
+      this.listedIn = arr[7];
+      this.description = arr[8];
+   }
+
+   @Override
    public byte[] toByteArray() throws IOException {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       DataOutputStream dos = new DataOutputStream(baos);
@@ -175,13 +141,10 @@ public class Show implements Register {
       dos.writeUTF(this.getType());
       dos.writeUTF(this.getTitle());
       dos.writeUTF(this.getDirectors());
-      dos.writeUTF(this.getCast());
-      dos.writeUTF(this.getListedIn());
-      dos.writeUTF(this.getCountry());
       dos.writeLong(this.getDateAdded().getTime());
       dos.writeShort(this.getReleaseYear());
-      dos.writeUTF(this.getRating());
       dos.writeUTF(this.getDuration());
+      dos.writeUTF(this.getListedIn());
       dos.writeUTF(this.getDescription());
       return baos.toByteArray();
    }
@@ -195,21 +158,26 @@ public class Show implements Register {
       this.setType(dis.readUTF());
       this.setTitle(dis.readUTF());
       this.setDirectors(dis.readUTF());
-      this.setCast(dis.readUTF());
-      this.setListedIn(dis.readUTF());
-      this.setCountry(dis.readUTF());
       this.setDateAdded(new Date(dis.readLong()));
       this.setReleaseYear(dis.readShort());
-      this.setRating(dis.readUTF());
       this.setDuration(dis.readUTF());
+      this.setListedIn(dis.readUTF());
       this.setDescription(dis.readUTF());
    }
 
    @Override
    public String toString() {
-      StringBuffer sb = new StringBuffer();
-      
-      return sb.toString();
+      StringBuffer sb = new StringBuffer("{\n");
+      sb.append("\t" + "\"showId\": " + "\"" + this.getId() + "\"" + ",\n");
+      sb.append("\t" + "\"type\": " + "\"" + this.getType() + "\"" + ",\n");
+      sb.append("\t" + "\"title\": " + "\"" + this.getTitle().replaceAll("\"", "\'") + "\"" + ",\n");
+      sb.append("\t" + "\"directors\": " + "\"" + this.getDirectors().replaceAll("\"", "\'") + "\"" + ",\n");
+      sb.append("\t" + "\"dateAdded\": " + "\"" + this.getDateAdded() + "\"" + ",\n");
+      sb.append("\t" + "\"releaseYear\": " + "\"" + this.getReleaseYear() + "\"" + ",\n");
+      sb.append("\t" + "\"duration\": " + "\"" + this.getDuration() + "\"" + ",\n");
+      sb.append("\t" + "\"listedIn\": " + "\"" + this.getListedIn() + "\"" + ",\n");
+      sb.append("\t" + "\"description\": " + "\"" + this.getDescription().replaceAll("\"", "\'") + "\"" + "\n");
+      return sb.append("}").toString();
    }
 
    @Override 

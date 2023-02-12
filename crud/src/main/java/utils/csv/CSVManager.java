@@ -1,10 +1,9 @@
-package utils;
+package utils.csv;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
@@ -12,18 +11,18 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 
-public class CSVMenager implements Closeable {
+public class CSVManager implements Closeable {
    private final String CSV_FILE_PATH;
    private final Character CSV_SEPARATOR;
    private final CSVParser parser;
    private final CSVReader reader;
-   private final Map<String, Integer> columns;
+   private final String[] columns;
 
-   public CSVMenager(String path) throws IOException, CsvValidationException {
+   public CSVManager(String path) throws IOException, CsvValidationException {
       this(path, null);
    }
 
-   public CSVMenager(String path, Character separator) throws IOException, CsvValidationException {
+   public CSVManager(String path, Character separator) throws IOException, CsvValidationException {
       if(path == null) 
          throw new NullPointerException();
 
@@ -41,6 +40,10 @@ public class CSVMenager implements Closeable {
 
    public Character getFileSeparator() {
       return this.CSV_SEPARATOR;
+   }
+
+   public long getLines() throws IOException {
+      return this.reader.getLinesRead();
    }
 
    public String[] getColumns() {
