@@ -1,9 +1,9 @@
-package entities;
+package components;
 
 import java.util.Date;
 
-import entities.abstracts.DateFormatter;
-import entities.abstracts.Register;
+import components.abstracts.DateFormatter;
+import components.abstracts.Register;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

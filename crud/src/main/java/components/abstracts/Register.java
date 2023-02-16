@@ -1,4 +1,4 @@
-package entities.abstracts;
+package components.abstracts;
 
 import java.io.IOException;
 

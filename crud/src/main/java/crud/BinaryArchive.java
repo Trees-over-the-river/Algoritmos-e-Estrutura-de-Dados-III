@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 
-import entities.abstracts.Register;
+import components.abstracts.Register;
 import err.EmptyFileException;
 import err.JsonValidationException;
 
