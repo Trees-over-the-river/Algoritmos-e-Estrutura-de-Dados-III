@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 
+import entities.abstracts.Register;
 import err.EmptyFileException;
 import err.JsonValidationException;
 
@@ -18,6 +19,7 @@ public class BinaryArchive<T extends Register> implements Closeable {
     private RandomAccessFile file;
     private Constructor<T> constructor;
     private long position = Integer.BYTES;
+    private int ID = 0;
 
     public BinaryArchive(String path, Constructor<T> constructor) throws IOException {
         this(null, path, constructor);
@@ -152,8 +154,10 @@ public class BinaryArchive<T extends Register> implements Closeable {
             this.file.skipBytes(len);
             lapide = this.file.readByte();
             len = this.file.readInt(); 
-        } 
+        }
 
+        this.position = this.file.getFilePointer();
+        
         byte[] b = new byte[len];
         this.file.read(b);
 
@@ -166,73 +170,98 @@ public class BinaryArchive<T extends Register> implements Closeable {
             e.printStackTrace();
         }
         
-        this.position = this.file.getFilePointer();
+        return obj;
+    }
+
+    private T __readObj(long pos) throws IOException {
+        this.file.seek(pos);
+        byte lapide = this.file.readByte();
+        
+        T obj = null;
+
+        if(lapide != 0) {
+            int len = this.file.readInt();
+            byte[] b = new byte[len];
+            
+            this.file.read(b);
+
+            try {
+                obj = this.constructor.newInstance();
+                obj.fromByteArray(b);
+            } catch(Exception e) {
+                System.err.println("Could not make a new instanse of " + this.constructor.getName());
+                e.printStackTrace();
+            }
+        }
+
         return obj;
     }
 
     public T readObj(int id) throws IOException {
         long pos = this.search(id);
 
-        if(pos == -1)
-            return null;
+        return (pos == -1) ? null : this.__readObj(pos);
+    }
+
+    public Boolean update(int id, T obj) throws IOException {
+        long pos = this.search(id);
+
+        if(pos == -1) 
+            return false;
 
         this.file.seek(pos);
-
         this.file.skipBytes(1);
         int len = this.file.readInt();
 
-        byte[] b = new byte[len];
-
-        this.file.read(b);
-
-        T obj = null;
-        try {
-            obj = this.constructor.newInstance();
-            obj.fromByteArray(b);
-        } catch(Exception e) {
-            System.err.println("Could not make a new instanse of " + this.constructor.getName());
-            e.printStackTrace();
+        byte[] b = obj.toByteArray();
+ 
+        if(b.length <= len) {
+            this.file.write(b);
+        } else {
+            this.file.seek(pos);
+            this.file.write(0x00);
+            this.write(obj);
         }
 
-        return obj;
+        return true;
     }
 
-    public void delete(int id) throws IOException {
-        int lastKey = this.__checkDefaultId();
-        long pos = this.__searchGarbage(id);
+    public Boolean delete(int id) throws IOException {
+        this.__checkDefaultId();
+        long pos = this.search(id);
+        
+        if(pos == -1) 
+            return false;
 
         this.file.seek(pos);
+        this.file.writeByte(0);
 
-        byte lapide = this.file.readByte();
-        this.file.skipBytes(Integer.BYTES);
-        int key = this.file.readInt();
-        
-        if(lapide == 1) {
-            this.file.seek(pos);
-            this.file.writeByte(0);
-        }
+        return true;
+    }
 
-        if(key == lastKey) {
-            int newKey = this.__foundLastKey();
+    private void __writeObj(byte[] b, long pos) throws IOException {
+        this.file.seek(pos);
 
-            this.file.seek(0);
-            this.file.writeInt(newKey);
-        }
+        this.file.write(0x01);
+        this.file.writeInt(b.length);
+        this.file.write(b);
     }
 
     public void write(T obj) throws IOException {
         if(this.isEmpty()) 
             this.clear();
         
+        this.file.seek(0);
+        this.ID = this.file.readInt();
+
+        this.ID++;
+        obj.setId(this.ID);
+
         byte[] bytes = obj.toByteArray();
 
         long pos = this.file.length();
-        this.file.seek(pos);
-
-        this.file.write(0x01);
-        this.file.writeInt(bytes.length);
-        this.file.write(bytes);
-
+        this.__writeObj(bytes, pos);
+        
         this.file.seek(0);
         this.file.writeInt(obj.getId());
     }

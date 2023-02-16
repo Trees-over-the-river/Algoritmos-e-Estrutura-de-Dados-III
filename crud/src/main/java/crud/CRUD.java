@@ -3,10 +3,13 @@ package crud;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.opencsv.exceptions.CsvValidationException;
 
 import entities.Show;
+import entities.abstracts.Register;
 import utils.csv.CSVManager;
 
 public class CRUD<T extends Register> implements Closeable {
@@ -49,6 +52,17 @@ public class CRUD<T extends Register> implements Closeable {
         return this.archive.search(id) != -1;
     }
 
+    public List<T> read(int startId, int lastId) throws IOException {
+        List<T> list = new ArrayList<>();
+
+        int range = lastId - startId;
+        for(int i = 0; i < range; i++) {
+            list.add(this.read(startId + i));
+        }
+
+        return list;
+    }
+
     public void create(T obj) throws IOException {
         this.archive.write(obj);
     }
@@ -61,12 +75,12 @@ public class CRUD<T extends Register> implements Closeable {
         return this.archive.readObj(id);
     }
 
-    public void update(int id) throws IOException {
-
+    public void update(int id, T obj) throws IOException {
+        this.archive.update(id, obj);
     }
 
-    public void delete(int id) throws IOException {
-        this.archive.delete(id);
+    public Boolean delete(int id) throws IOException {
+        return this.archive.delete(id);
     }
 
     public void clear() throws IOException {
@@ -80,12 +94,14 @@ public class CRUD<T extends Register> implements Closeable {
 
     public static void main(String[] args) throws Exception {
         CRUD<Show> crud = new CRUD<Show>("src/main/java/Data/arc.db", Show.class.getConstructor());
-        // crud.populateAll("src/main/java/Data/netflix_titles.csv"); 
-        // crud.toJsonFile("src/main/java/Data/out.json");
+        crud.populateAll("src/main/java/Data/netflix_titles.csv"); 
+        crud.toJsonFile("src/main/java/Data/out.json");
 
         System.out.println(crud.read());
         System.out.println(crud.read(1));
         System.out.println(crud.read());
+
+        System.out.println(crud.read(10, 100));
 
         crud.close();
     }

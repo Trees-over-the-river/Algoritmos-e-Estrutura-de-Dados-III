@@ -2,8 +2,8 @@ package entities;
 
 import java.util.Date;
 
-import crud.Register;
-import utils.csv.DateParser;
+import entities.abstracts.DateFormatter;
+import entities.abstracts.Register;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -11,8 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class Show implements Register {
-   private int showId;
+public class Show implements Register, DateFormatter {
+   private Integer showId = null;
    private String type;
    private String title;
    private String directors;
@@ -25,11 +25,10 @@ public class Show implements Register {
    // Constructors
 
    public Show() {
-      this(-1, "", "", "", new Date(), (short)-1, "", "", "");
+      this("", "", "", new Date(), (short)-1, "", "", "");
    }
 
-   public Show(int showId, String type, String title, String directors, Date dateAdded, short releaseYear, String duration, String listedIn, String description) {
-      this.showId = showId;
+   public Show(String type, String title, String directors, Date dateAdded, short releaseYear, String duration, String listedIn, String description) {
       this.type = type;
       this.title = title;
       this.directors = directors;
@@ -125,11 +124,38 @@ public class Show implements Register {
       this.type = arr[1];
       this.title = arr[2];
       this.directors = arr[3];
-      this.dateAdded = new DateParser(arr[4]).getDate();
+      this.dateAdded = this.dateParser(arr[4]);
       this.releaseYear = (short)Integer.parseInt(arr[5]);
       this.duration = arr[6];
       this.listedIn = arr[7];
       this.description = arr[8];
+   }
+
+   @Override
+   public Date dateParser(String originalDate) {
+      String str  = null;
+      Date date = null;
+
+      originalDate = originalDate.replaceAll(",", "").trim();
+      String[] arr = originalDate.split(" ");
+
+      try {
+         if(arr.length <= 1)  {
+             date = new Date(System.currentTimeMillis());
+         } else {
+            str = "";
+            str += arr[1] + "-";
+            str += months.get(arr[0]) + "-";
+            str += arr[2];
+     
+            date = dateFormat.parse(str);
+         }
+     } catch(Exception e) {            
+         System.err.println("The given string (" + str + ") does not match the pattern.");
+         e.printStackTrace();
+     }
+
+      return date;
    }
 
    @Override

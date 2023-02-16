@@ -1,4 +1,4 @@
-package crud;
+package entities.abstracts;
 
 import java.io.IOException;
 
