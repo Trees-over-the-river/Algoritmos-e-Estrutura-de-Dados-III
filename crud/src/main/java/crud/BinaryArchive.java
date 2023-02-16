@@ -156,11 +156,9 @@ public class BinaryArchive<T extends Register> implements Closeable {
             len = this.file.readInt(); 
         }
 
-        this.position = this.file.getFilePointer();
-        
         byte[] b = new byte[len];
         this.file.read(b);
-
+        
         T obj = null;
         try {
             obj = this.constructor.newInstance();
@@ -170,6 +168,7 @@ public class BinaryArchive<T extends Register> implements Closeable {
             e.printStackTrace();
         }
         
+        this.position = this.file.getFilePointer();
         return obj;
     }
 
@@ -213,6 +212,7 @@ public class BinaryArchive<T extends Register> implements Closeable {
         this.file.skipBytes(1);
         int len = this.file.readInt();
 
+        obj.setId(id);
         byte[] b = obj.toByteArray();
  
         if(b.length <= len) {

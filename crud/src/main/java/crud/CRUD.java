@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.opencsv.exceptions.CsvValidationException;
@@ -75,8 +76,8 @@ public class CRUD<T extends Register> implements Closeable {
         return this.archive.readObj(id);
     }
 
-    public void update(int id, T obj) throws IOException {
-        this.archive.update(id, obj);
+    public Boolean update(int id, T obj) throws IOException {
+        return this.archive.update(id, obj);
     }
 
     public Boolean delete(int id) throws IOException {
@@ -94,15 +95,9 @@ public class CRUD<T extends Register> implements Closeable {
 
     public static void main(String[] args) throws Exception {
         CRUD<Show> crud = new CRUD<Show>("src/main/java/Data/arc.db", Show.class.getConstructor());
-        crud.populateAll("src/main/java/Data/netflix_titles.csv"); 
+        crud.populateAll("src/main/java/Data/netflix_titles.csv");
+        System.out.println(crud.read(1, 15));
         crud.toJsonFile("src/main/java/Data/out.json");
-
-        System.out.println(crud.read());
-        System.out.println(crud.read(1));
-        System.out.println(crud.read());
-
-        System.out.println(crud.read(10, 100));
-
         crud.close();
     }
 
