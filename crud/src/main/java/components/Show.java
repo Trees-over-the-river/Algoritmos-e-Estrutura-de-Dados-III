@@ -2,8 +2,8 @@ package components;
 
 import java.util.Date;
 
-import components.abstracts.DateFormatter;
-import components.abstracts.Register;
+import components.interfaces.DateFormatter;
+import components.interfaces.Register;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;

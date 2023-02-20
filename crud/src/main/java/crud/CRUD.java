@@ -1,6 +1,5 @@
 package crud;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -9,17 +8,17 @@ import java.util.List;
 import com.opencsv.exceptions.CsvValidationException;
 
 import components.Show;
-import components.abstracts.Register;
+import components.interfaces.Register;
 import utils.csv.CSVManager;
 
-public class CRUD<T extends Register> implements Closeable {
+public class CRUD<T extends Register> {
     private final String filePath;
-    private BinaryArchive<T> archive;
+    private DataBase<T> archive;
     private Constructor<T> constructor;
 
     public CRUD(String path, Constructor<T> constructor) throws IOException {
         this.filePath = path;
-        this.archive = new BinaryArchive<T>("Show DataBase", path, constructor);
+        this.archive = new DataBase<T>("Show DataBase", path, constructor);
         this.constructor = constructor;
     }
 
@@ -87,17 +86,14 @@ public class CRUD<T extends Register> implements Closeable {
         this.archive.clear();
     }
 
-    @Override
-    public void close() throws IOException {
-        this.archive.close();
-    }
-
     public static void main(String[] args) throws Exception {
-        CRUD<Show> crud = new CRUD<Show>("src/main/java/Data/arc.db", Show.class.getConstructor());
-        crud.populateAll("src/main/java/Data/netflix_titles.csv");
-        System.out.println(crud.read(1, 15));
-        crud.toJsonFile("src/main/java/Data/out.json");
-        crud.close();
+        CRUD<Show> crud = new CRUD<Show>("src/main/java/data/arc.db", Show.class.getConstructor());
+        crud.populateAll("src/main/java/data/dat.csv");
+        crud.toJsonFile("src/main/java/data/out.json");
+
+        System.out.println();
+        SortedFile<Show> sorted = new SortedFile<>("src/main/java/data/arc.db", 500, Show.class.getConstructor());
+        sorted.sort();
     }
 
 }
