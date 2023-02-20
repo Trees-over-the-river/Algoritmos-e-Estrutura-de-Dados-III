@@ -93,6 +93,7 @@ public class CRUD<T extends Register> {
 
         System.out.println();
         SortedFile<Show> sorted = new SortedFile<>("src/main/java/data/arc.db", 500, Show.class.getConstructor());
+        sorted.setComparator(Show.properties.get("showId"));
         sorted.sort();
     }
 

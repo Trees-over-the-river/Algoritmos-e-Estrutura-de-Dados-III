@@ -1,6 +1,9 @@
 package components;
 
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import components.interfaces.DateFormatter;
 import components.interfaces.Register;
@@ -12,6 +15,18 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class Show implements Register, DateFormatter {
+   public static final Map<String, Comparator<Show>> properties = new HashMap<String, Comparator<Show>>(){{
+      put("showId", (Show s1, Show s2) -> s1.getId() - s2.getId());
+      put("type", (Show s1, Show s2) -> s1.getType().compareTo(s2.getType()));
+      put("title", (Show s1, Show s2) -> s1.getTitle().compareTo(s2.getTitle()));
+      put("directors", (Show s1, Show s2) -> s1.getDirectors().compareTo(s2.getDirectors()));
+      put("dateAdded", (Show s1, Show s2) -> s1.getDateAdded().compareTo(s2.getDateAdded()));
+      put("releaseYear", (Show s1, Show s2) -> s1.getReleaseYear() - s2.getReleaseYear());
+      put("duration", (Show s1, Show s2) -> s1.getDuration().compareTo(s2.getDuration()));
+      put("listedIn", (Show s1, Show s2) -> s1.getListedIn().compareTo(s2.getListedIn()));
+      put("description", (Show s1, Show s2) -> s1.getDescription().compareTo(s2.getDescription()));
+   }};
+
    private Integer showId = null;
    private String type;
    private String title;

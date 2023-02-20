@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
-import components.Show;
+import java.util.Comparator;
 
 import components.interfaces.Register;
 
@@ -15,15 +15,14 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
 
     private DataBase<T> database;
     private final int registerSize;
-    private final int blocksCeil;
-
-    private int position = 0;
+    private final int blocksFloor;
+    private Comparator<T> comparator = (T obj1, T obj2) -> obj1.getId() - obj2.getId();
 
     public SortedFile(String path, int registerSize, Constructor<T> constructor) throws IOException {
         super(path, constructor);
 
         this.registerSize = registerSize;
-        this.blocksCeil = (int)Math.floor(BLOCK_SIZE/(double)this.registerSize);
+        this.blocksFloor = (int)Math.floor(BLOCK_SIZE/(double)this.registerSize);
     }
 
     private void writeAtFile(T[] arr, int archiveNumber) throws IOException {
@@ -59,7 +58,7 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         int i = 0,
             j = 1;
 
-        T[] arr = (T[])new Register[blocksCeil];
+        T[] arr = (T[])new Register[blocksFloor];
         
         int nextId = this.database.getNextId(this.database.getPosition());
         while(nextId != -1) {
@@ -88,6 +87,10 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         this.interpolate();
     }
 
+    public void setComparator(Comparator<T> comparator) {
+        this.comparator = comparator;
+    }
+
     private void interpolate() {
         
     }
@@ -101,6 +104,7 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private int partition(Register[] arr, int first, int last) {
         Register p = arr[(first + last) / 2];
             
@@ -108,8 +112,8 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
             j = last;
 
         while(i <= j) {
-            while(((Show)arr[i]).getListedIn().compareTo(((Show)p).getListedIn()) < 0) i++;
-            while(((Show)arr[j]).getListedIn().compareTo(((Show)p).getListedIn()) > 0) j--;
+            while(comparator.compare(((T)arr[i]), ((T)p)) < 0) i++;
+            while(comparator.compare(((T)arr[j]), ((T)p)) > 0) j--;
             if(i <= j) {
                 swap(arr, i, j);
                 i++;
