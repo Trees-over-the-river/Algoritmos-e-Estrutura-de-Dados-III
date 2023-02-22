@@ -14,7 +14,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+/**
+ * The class {@code Show} represents a show register.
+ * @author Fernando Campos Silva Dal Maria & Bruno Santiago de Oliveira
+ * @version 1.0.0
+ * 
+ * @see {@link components.interfaces.Register}
+ * @see {@link components.interfaces.DateFormatter}
+ */
 public class Show implements Register, DateFormatter {
+
+   /**
+    * Map that corelates a property name with it`s comparator.
+    */
    public static final Map<String, Comparator<Show>> properties = new HashMap<String, Comparator<Show>>(){{
       put("showId", (Show s1, Show s2) -> s1.getId() - s2.getId());
       put("type", (Show s1, Show s2) -> s1.getType().compareTo(s2.getType()));
@@ -27,22 +39,38 @@ public class Show implements Register, DateFormatter {
       put("description", (Show s1, Show s2) -> s1.getDescription().compareTo(s2.getDescription()));
    }};
 
-   private Integer showId = null;
-   private String type;
-   private String title;
-   private String directors;
-   private Date dateAdded;
-   private short releaseYear;
-   private String duration;
-   private String listedIn;
-   private String description;
+   // Attributes
+
+   private Integer showId = null; // Auto-incremented ID
+   private String type; // Movie or TV Show
+   private String title; // Show title
+   private String directors; // Show directors
+   private Date dateAdded; // Date added to Netflix
+   private short releaseYear; // Show release year
+   private String duration; // Show duration
+   private String listedIn; // Show categories
+   private String description; // Show description
 
    // Constructors
 
+   /**
+    * Creates a new Show object with default values.
+    */
    public Show() {
       this("", "", "", new Date(), (short)-1, "", "", "");
    }
 
+   /**
+    * Creates a new Show object with the given values.
+    * @param type show type
+    * @param title show title
+    * @param directors show directors
+    * @param dateAdded date added to Netflix
+    * @param releaseYear show release year
+    * @param duration show duration
+    * @param listedIn show categories
+    * @param description show description
+    */
    public Show(String type, String title, String directors, Date dateAdded, short releaseYear, String duration, String listedIn, String description) {
       this.type = type;
       this.title = title;
@@ -56,83 +84,160 @@ public class Show implements Register, DateFormatter {
 
    // Getters
 
+   /**
+    * Returns the show id.
+    * @return the show id.
+    */
    @Override
    public int getId() {
       return showId;
    }
 
+   /**
+    * Returns the show type.
+    * @return the show type.
+    */
    public String getType() {
       return type;
    }
 
+   /**
+    * Returns the show title.
+    * @return the show title.
+    */
    public String getTitle() {
       return title;
    }
+
+   /**
+    * Returns the show directors.
+    * @return the show directors.
+    */
    public String getDirectors() {
       return directors;
    }
 
+   /**
+    * Returns the show categories.
+    * @return the show categories.
+    */
    public String getListedIn() {
       return listedIn;
    }
 
+   /**
+    * Returns the date added to Netflix.
+    * @return the date added to Netflix.
+    */
    public Date getDateAdded() {
       return dateAdded;
    }
 
+   /**
+    * Returns the show release year.
+    * @return the show release year.
+    */
    public short getReleaseYear() {
       return releaseYear;
    }
 
+   /**
+    * Returns the show duration.
+    * @return the show duration.
+    */
    public String getDuration() {
       return duration;
    }
 
+   /**
+    * Returns the show description.
+    * @return the show description.
+    */
    public String getDescription() {
       return description;
    }
 
    // Setters
 
+   /**
+    * Sets the show id.
+    * @param showId the show id.
+    */
    @Override
    public void setId(int showId) {
       this.showId = showId;
    }
 
+   /**
+    * Sets the show type.
+    * @param type the show type.
+    */
    public void setType(String type) {
       this.type = type;
    }
 
+   /**
+    * Sets the show title.
+    * @param title the show title.
+    */
    public void setTitle(String title) {
       this.title = title;
    }
 
+   /**
+    * Sets the show directors.
+    * @param directors the show directors.
+    */
    public void setDirectors(String directors) {
       this.directors = directors;
    }
 
+   /**
+    * Sets the show categories.
+    * @param listedIn the show categories.
+    */
    public void setListedIn(String listedIn) {
       this.listedIn = listedIn;
    }
 
+   /**
+    * Sets the date added to Netflix.
+    * @param dateAdded the date added to Netflix.
+    */
    public void setDateAdded(Date dateAdded) {
       this.dateAdded = dateAdded;
    }
 
+   /**
+    * Sets the show release year.
+    * @param releaseYear the show release year.
+    */
    public void setReleaseYear(short releaseYear) {
       this.releaseYear = releaseYear;
    }
 
+   /**
+    * Sets the show duration.
+    * @param duration the show duration.
+    */
    public void setDuration(String duration) {
       this.duration = duration;
    }
 
+   /**
+    * Sets the show description.
+    * @param description the show description.
+    */
    public void setDescription(String description) {
       this.description = description;
    }
 
    // Methods
 
+   /**
+    * Populates the Show object with the given array values.
+    * @param arr array of values to populate the Show object
+    */
    @Override
    public void from(String... arr) {
       this.showId = Integer.parseInt(arr[0].substring(1));
@@ -146,6 +251,11 @@ public class Show implements Register, DateFormatter {
       this.description = arr[8];
    }
 
+   /**
+     * Returns a {@link Date} object from a given date string.
+     * @param date the date string.
+     * @return a {@link Date} object from a given date string.
+     */
    @Override
    public Date dateParser(String originalDate) {
       String str  = null;
@@ -173,6 +283,10 @@ public class Show implements Register, DateFormatter {
       return date;
    }
 
+   /**
+    * Returns the register as an array of {@code bytes}.
+    * @return the register as an array of {@code bytes}.
+    */
    @Override
    public byte[] toByteArray() throws IOException {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -190,6 +304,10 @@ public class Show implements Register, DateFormatter {
       return baos.toByteArray();
    }
 
+   /**
+    * Populates a register with the given array of {@code bytes}.
+    * @param b array of {@code bytes} to populate the register.
+    */
    @Override
    public void fromByteArray(byte[] b) throws IOException {
       ByteArrayInputStream bais = new ByteArrayInputStream(b);
@@ -206,6 +324,10 @@ public class Show implements Register, DateFormatter {
       this.setDescription(dis.readUTF());
    }
 
+   /**
+    * Returns a JSON-formatted string representation of the Show object.
+    * @return a JSON-formatted string representation of the Show object
+    */
    @Override
    public String toString() {
       StringBuffer sb = new StringBuffer("{\n");
@@ -221,6 +343,11 @@ public class Show implements Register, DateFormatter {
       return sb.append("}").toString();
    }
 
+   /**
+    * Determines if this Show object is equal to the specified object.
+    * @param o the object to compare
+    * @return true if the objects are equal, false otherwise
+    */
    @Override 
    public boolean equals(Object o) {
       return  this.getId() == ((Show)o).getId();

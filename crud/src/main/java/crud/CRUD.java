@@ -91,8 +91,7 @@ public class CRUD<T extends Register> {
         crud.populateAll("src/main/java/data/netflix_titles.csv");
         crud.toJsonFile("src/main/java/data/out.json");
         
-        SortedFile<Show> sorted = new SortedFile<>("src/main/java/data/arc.db", 500, Show.class.getConstructor());
-        sorted.setComparator(Show.properties.get("dateAdded"));
+        SortedFile<Show> sorted = new SortedFile<>("src/main/java/data/arc.db", 500, Show.properties.get("title"), Show.class.getConstructor());
         sorted.sort();
         crud.toJsonFile("src/main/java/data/out1.json");
     }
