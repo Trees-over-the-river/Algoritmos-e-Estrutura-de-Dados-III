@@ -33,6 +33,10 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
 
     public SortedFile(String path, int registerSize, Comparator<T> comparator, Constructor<T> constructor) throws IOException {
         super(path, constructor);
+
+        File f = new File(TEMPORARY_FILES_DIRECTORY);
+        if(!f.exists()) f.mkdir();
+        
         this.database = new DataBase<T>(path, constructor);
         if(comparator != null) this.comparator = comparator;
 

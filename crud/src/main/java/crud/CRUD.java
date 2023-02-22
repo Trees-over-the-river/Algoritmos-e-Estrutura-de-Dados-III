@@ -1,6 +1,5 @@
 package crud;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -88,15 +87,10 @@ public class CRUD<T extends Register> {
     }
 
     public static void main(String[] args) throws Exception {
-        File[] list = new File("src/main/java/data/tmp").listFiles();
-        for(int i = 0; i < list.length; i++)
-            list[i].delete();
-
         CRUD<Show> crud = new CRUD<Show>("src/main/java/data/arc.db", Show.class.getConstructor());
         crud.populateAll("src/main/java/data/netflix_titles.csv");
         crud.toJsonFile("src/main/java/data/out.json");
         
-        System.out.println();
         SortedFile<Show> sorted = new SortedFile<>("src/main/java/data/arc.db", 500, Show.class.getConstructor());
         sorted.setComparator(Show.properties.get("dateAdded"));
         sorted.sort();
