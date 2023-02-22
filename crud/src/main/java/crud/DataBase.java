@@ -37,6 +37,13 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         return this.position;
     }
 
+    public long length() throws IOException {
+        this.file = new RandomAccessFile(this.filePath, "rw");
+        long len = this.file.length();
+        this.file.close();
+        return len;
+    }
+
     public Boolean isEmpty() throws IOException {
         this.file = new RandomAccessFile(this.filePath, "rw");
         Boolean res = this.file.length() == 0;
@@ -50,7 +57,6 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
 
     private void __initiateDB() throws IOException {
         if(this.file.length() == 0) {
-            this.file.setLength(0);
             this.file.seek(0);
             this.file.writeInt(0);
         }
@@ -242,11 +248,19 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         this.file.close();
     }
 
+    public void copy(BinaryArchive<T> arc) throws IOException {
+        this.clear();
+        
+        while(!arc._isEOF()) 
+            this.write(arc._readObj());
+    }
+
     public void toJsonFile(String path) throws IOException {
         if(!path.endsWith(".json"))
             throw new JsonValidationException("The file at " + path + "is not a JSON file.");
 
         BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path)));
+        this.reset();
 
         bw.write("[\n");
         T obj = this.readObj();
