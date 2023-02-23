@@ -166,17 +166,7 @@ public class BinaryArchive<T extends Register> {
         this.file.writeInt(b.length);
         this.file.write(b);
     }
-
-    /**
-     * Tests if the file pointer is at the end of the file.
-     * @return {@code true} if the file pointer is at the end of the file, {@code false} otherwise.
-     * 
-     * @see {@link java.io.IOException}
-     */
-    protected Boolean _isEOF() throws IOException {
-        return this.file.getFilePointer() >= this.file.length();
-    }
-
+    
     /**
      * Write a register array to a binary file.
      * @param arr the register array to be written.
@@ -189,4 +179,23 @@ public class BinaryArchive<T extends Register> {
             this._writeObj(arr[i]);
     }
 
+    /**
+     * Tests if the file pointer is at the end of the file.
+     * @return {@code true} if the file pointer is at the end of the file, {@code false} otherwise.
+     * 
+     * @see {@link java.io.IOException}
+     */
+    protected Boolean _isEOF() throws IOException {
+        return this.file.getFilePointer() >= this.file.length();
+    }
+
+        /**
+     * Changes all pointers of a given array of files to the beginning of the file.
+     * @param arr the array of files.
+     * @throws IOException if an I/O error occurs.
+     */
+    protected void _resetFilePointers(BinaryArchive<T>[] arr) throws IOException {
+        for(int k = 0; k < arr.length; k++)
+            arr[k].file.seek(0);
+    } 
 }

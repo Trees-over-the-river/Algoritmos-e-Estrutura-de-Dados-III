@@ -10,27 +10,52 @@ import java.util.Comparator;
 import components.interfaces.Register;
 import err.InsufficientMemoryException;
 
+/**
+ * The {@code SortedFile} class represents a file that can be sorted by any attribute from type {@code T} register.
+ * @author Fernando Campos Silva Dal Maria & Bruno Santiago de Oliveira
+ * @version 1.0.0
+ * 
+ * @see {@link components.interfaces.Register}
+ * @see {@link crud.BinaryArchive}
+ */
 public class SortedFile<T extends Register> extends BinaryArchive<T> {
 
-    private static final int BLOCK_SIZE = 4096;
-    private static final int NUMBER_OF_BRANCHES = 4;
-    private static final String TEMPORARY_FILES_DIRECTORY = "src/main/java/data/tmp";
-    private static final String TEMPORARY_FILES_PATH = "src/main/java/data/tmp/tmp";
+    private static final int BLOCK_SIZE = 4096; // 4KB
+    private static final int NUMBER_OF_BRANCHES = 4; // Number of branches for the sort algorithm
+    private static final String TEMPORARY_FILES_DIRECTORY = "src/main/java/data/tmp"; // Directory where the temporary files will be stored
+    private static final String TEMPORARY_FILES_PATH = "src/main/java/data/tmp/tmp"; // Path of the temporary files
 
-    private final DataBase<T> database;
-    private final int registerSize;
-    private final int originalNumberOfRegistersPerBlock;
+    private final DataBase<T> database; // Original data file
+    private final int registerSize; // Size of each register in bytes
+    private final int originalNumberOfRegistersPerBlock; // Number of registers per block calculated for the first step of the sort algorithm
     
-    private int numberOfRegistersPerBlock;
-    private Comparator<T> comparator = (T obj1, T obj2) -> obj1.getId() - obj2.getId();
+    private int numberOfRegistersPerBlock; // Number of registers per block in the temporary files
+    private Comparator<T> comparator = (T obj1, T obj2) -> obj1.getId() - obj2.getId(); // Comparator used to sort the registers
     
-    private BinaryArchive<T>[] originalFiles;
-    private BinaryArchive<T>[] tmpFiles;
+    private BinaryArchive<T>[] originalFiles; // Files used to store the registers that will be interpolated
+    private BinaryArchive<T>[] tmpFiles; // Temporary files used to store the sorted registers
 
+    // Constructors
+
+    /**
+     * Constructs a new {@code SortedFile} with the given file path, register size and constructor.
+     * @param path the file path of the archive.
+     * @param registerSize the size of each register in bytes.
+     * @param constructor the constructor of the register.
+     * @throws IOException if an I/O error occurs.
+     */
     public SortedFile(String path, int registerSize, Constructor<T> constructor) throws IOException {
         this(path, registerSize, null, constructor);
     }
 
+    /**
+     * Constructs a new {@code SortedFile} with the given file path, register size, comparator and constructor.
+     * @param path the file path of the archive.
+     * @param registerSize the size of each register in bytes.
+     * @param comparator the comparator used to sort the registers.
+     * @param constructor the constructor of the register.
+     * @throws IOException if an I/O error occurs.
+     */
     public SortedFile(String path, int registerSize, Comparator<T> comparator, Constructor<T> constructor) throws IOException {
         super(path, constructor);
 
@@ -51,14 +76,29 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         this.__createArchives();
     }
 
+    // Public Methods
+
+    /**
+     * Returns the number of registers per block in the temporary files.
+     * @return the number of registers per block in the temporary files.
+     * @throws IOException if an I/O error occurs.
+     */
     public int getNumberOfReistersPerBlock() {
         return this.originalNumberOfRegistersPerBlock;
     }
 
+    /**
+     * Sets the comparator used to sort the registers.
+     * @param comparator the comparator that will be used to sort the registers.
+     */
     public void setComparator(Comparator<T> comparator) {
         this.comparator = comparator;
     }
 
+    /**
+     * Sorts the file.
+     * @throws IOException if an I/O error occurs.
+     */
     public void sort() throws IOException {
         int numberOfBlocks = this.distribute();
 
@@ -69,6 +109,13 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         this.__close();
     }
 
+    // Private Methods
+
+    /**
+     * Checks if all registers from a block were readed.
+     * @param values the array of booleans that represents the registers.
+     * @return {@code true} if all registers were readed, {@code false} otherwise.
+     */
     private Boolean __blockWasReaded(Boolean[] values) {
         Boolean value = true;
 
@@ -78,11 +125,10 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         return value;
     }
 
-    private void __resetFilePointers(BinaryArchive<T>[] arr) throws IOException {
-        for(int k = 0; k < arr.length; k++)
-            arr[k].file.seek(0);
-    } 
-
+    /**
+     * Initialize the {@see originalFiles} and {@see tmpFiles} arrays with a set of {@link crud.BinaryArchive}.
+     * @throws IOException if an I/O error occurs.
+     */
     @SuppressWarnings("unchecked")
     private void __createArchives() throws IOException {
         this.originalFiles = new BinaryArchive[NUMBER_OF_BRANCHES];
@@ -97,6 +143,10 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         }
     }
 
+    /**
+     * Changes the file pointers of the {@see originalFiles} and {@see tmpFiles} arrays.
+     * @throws IOException if an I/O error occurs.
+     */
     @SuppressWarnings("unchecked")
     private void __changeOriginalFiles() throws IOException {
         BinaryArchive<T>[] arr = new BinaryArchive[NUMBER_OF_BRANCHES];
@@ -111,6 +161,11 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         }
     }
 
+    /**
+     * Checks if there is at least one register in the files from {@see originalFiles} array.
+     * @return {@code true} if there is at least one register, {@code false} otherwise.
+     * @throws IOException if an I/O error occurs.
+     */
     private Boolean __haveRegister() throws IOException {
         Boolean value = false;
 
@@ -120,17 +175,11 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
         return value;
     }
 
-    private void __close() throws IOException {
-        for(int i = 0; i < NUMBER_OF_BRANCHES; i++) {
-            this.originalFiles[i].file.close();
-            this.tmpFiles[i].file.close();
-        }
-
-        File[] list = new File(TEMPORARY_FILES_DIRECTORY).listFiles();
-        for(int i = 0; i < list.length; i++)
-            list[i].delete();
-    }
-
+    /**
+     * Distributes the registers from the original file to the temporary files.
+     * @return the number of blocks in the temporary files.
+     * @throws IOException if an I/O error occurs.
+     */
     @SuppressWarnings("unchecked")
     private int distribute() throws IOException {
         int numberOfBlocks = 0,
@@ -157,11 +206,16 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
             numberOfBlocks++;
         }
 
-        this.__resetFilePointers(this.originalFiles);
+        this._resetFilePointers(this.originalFiles);
 
         return numberOfBlocks;
     }
 
+    /**
+     * Interpolates the registers from the original files to the temporary files and changes it`s pointers.
+     * @return the number of blocks in the original files.
+     * @throws IOException if an I/O error occurs.
+     */
     private int interpolate() throws IOException {
         int numberOfBlocks = 0,
             i = 0;
@@ -173,13 +227,18 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
 
         this.numberOfRegistersPerBlock *= NUMBER_OF_BRANCHES;
 
-        this.__resetFilePointers(this.tmpFiles);
+        this._resetFilePointers(this.tmpFiles);
         this.__changeOriginalFiles();
-        this.__resetFilePointers(this.originalFiles);
+        this._resetFilePointers(this.originalFiles);
 
         return numberOfBlocks;
     }
 
+    /**
+     * Reads the registers from the original files and writes them in the temporary files in order.
+     * @param arc the temporary file.
+     * @throws IOException if an I/O error occurs.
+     */
     private void readRegistersAndWriteOrdered(BinaryArchive<T> arc) throws IOException {
         Boolean[] restrictions = new Boolean[this.originalFiles.length];
         for(int i = 0; i < restrictions.length; i++)
@@ -215,5 +274,20 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
 
             if(min != null) arc._writeObj(min);
         }
+    }
+
+    /**
+     * Closes the {@see originalFiles} and {@see tmpFiles} arrays.
+     * @throws IOException if an I/O error occurs.
+     */
+    private void __close() throws IOException {
+        for(int i = 0; i < NUMBER_OF_BRANCHES; i++) {
+            this.originalFiles[i].file.close();
+            this.tmpFiles[i].file.close();
+        }
+
+        File[] list = new File(TEMPORARY_FILES_DIRECTORY).listFiles();
+        for(int i = 0; i < list.length; i++)
+            list[i].delete();
     }
 }
