@@ -161,10 +161,12 @@ public class BinaryArchive<T extends Register> {
      * @see {@link java.io.IOException}
      */
     protected void _writeObj(T obj) throws IOException {
-        byte[] b = obj.toByteArray();
+        if(obj != null) {
+            byte[] b = obj.toByteArray();
 
-        this.file.writeInt(b.length);
-        this.file.write(b);
+            this.file.writeInt(b.length);
+            this.file.write(b);
+        }
     }
     
     /**

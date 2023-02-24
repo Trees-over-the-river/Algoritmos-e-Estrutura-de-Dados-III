@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 
 import components.interfaces.Register;
+import err.DatabaseValidationException;
 import err.InsufficientMemoryException;
 
 /**
@@ -21,7 +22,7 @@ import err.InsufficientMemoryException;
 public class SortedFile<T extends Register> extends BinaryArchive<T> {
 
     private static final int BLOCK_SIZE = 4096; // 4KB
-    private static final int NUMBER_OF_BRANCHES = 4; // Number of branches for the sort algorithm
+    private static final int NUMBER_OF_BRANCHES = 2; // Number of branches for the sort algorithm
     private static final String TEMPORARY_FILES_DIRECTORY = "src/main/java/data/tmp"; // Directory where the temporary files will be stored
     private static final String TEMPORARY_FILES_PATH = "src/main/java/data/tmp/tmp"; // Path of the temporary files
 
@@ -59,6 +60,9 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
     public SortedFile(String path, int registerSize, Comparator<T> comparator, Constructor<T> constructor) throws IOException {
         super(path, constructor);
 
+        if(!path.endsWith(".db")) 
+            throw new DatabaseValidationException("The file must have the extension \".db\".");
+        
         File f = new File(TEMPORARY_FILES_DIRECTORY);
         if(!f.exists()) f.mkdir();
         

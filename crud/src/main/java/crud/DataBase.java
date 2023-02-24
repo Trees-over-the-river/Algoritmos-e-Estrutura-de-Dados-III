@@ -82,13 +82,13 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
 
         this.file.seek(pos);
         if(this.file.getFilePointer() < this.file.length()) {
-            byte lapide = this.file.readByte();
-            while(lapide != 1 && this.file.getFilePointer() < this.file.length()) {
+            boolean lapide = this.file.readBoolean();
+            while(!lapide && this.file.getFilePointer() < this.file.length()) {
                 len = this.file.readInt();
                 this.file.skipBytes(len);
     
                 if(this.file.getFilePointer() < this.file.length()) 
-                    lapide = this.file.readByte();
+                    lapide = this.file.readBoolean();
             }
         }
 
@@ -114,21 +114,21 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
 
     public long search(int id) throws IOException {
         this.file = new RandomAccessFile(new File(this.filePath), "rw");
-        int lastKey = this.__checkDefaultId();
+        this.__checkDefaultId();
         
         long pos = Integer.BYTES;
         this.file.seek(pos);
 
-        byte lapide;
+        boolean lapide;
 
         T obj = null;
         do {
             pos = this.file.getFilePointer();
-            lapide = this.file.readByte();
+            lapide = this.file.readBoolean();
             obj = this._readObj();
-        } while(obj.getId() != id && obj.getId() != lastKey);
+        } while(obj.getId() != id && this.file.getFilePointer() < this.file.length());
 
-        if(obj == null || obj.getId() != id || lapide == 0) 
+        if(obj == null || obj.getId() != id || !lapide) 
             pos = -1;
 
         this.file.close();
@@ -137,20 +137,23 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
 
     public T readObj() throws IOException {
         this.file = new RandomAccessFile(new File(this.filePath), "rw");
-        if(this.position == this.file.length()) 
-            return null;
-    
         this.__checkDefaultId();
 
         this.file.seek(this.position);
-        byte lapide = this.file.readByte();
-        int len = this.file.readInt();
 
-        while(lapide == 0) {
-            this.file.skipBytes(len);
-            lapide = this.file.readByte();
+        boolean lapide = false;
+        int len = 0;
+
+        while(!lapide && this.file.getFilePointer() < this.file.length()) {
+            lapide = this.file.readBoolean();
             len = this.file.readInt(); 
-        }
+
+            if(!lapide)
+                this.file.skipBytes(len);
+        } 
+
+        if(this.file.getFilePointer() == this.file.length()) 
+            return null;
 
         byte[] b = new byte[len];
         this.file.read(b);
@@ -177,9 +180,9 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         T obj = null;
         if(pos != -1) {
             this.file.seek(pos);
-            byte lapide = this.file.readByte();
+            boolean lapide = this.file.readBoolean();
 
-            if(lapide != 0) 
+            if(lapide) 
                 obj = this._readObj();
         }
 
@@ -205,8 +208,8 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
             this.file.write(b);
         } else {
             this.file.seek(pos);
-            this.file.write(0x00);
-            this.write(obj);
+            this.file.writeBoolean(false);
+            this.__unsafeWrite(obj);
         }
 
         this.file.close();
@@ -221,29 +224,58 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
             return false;
 
         this.file.seek(pos);
-        this.file.writeByte(0);
+        this.file.writeBoolean(false);
 
         this.file.close();
         return true;
     }
 
-    public void write(T obj) throws IOException {
+    private void __unsafeWrite(T obj) throws IOException {
         this.file = new RandomAccessFile(new File(this.filePath), "rw");
         this.__initiateDB();
-        
+
         this.file.seek(0);
         this.ID = this.file.readInt();
-
-        this.ID++;
-        obj.setId(this.ID);
+        
+        if(obj.getId() == -1) {
+            this.ID++;
+            obj.setId(this.ID);
+        }
 
         file.seek(this.file.length());
-        this.file.write(0x01);
+        this.file.writeBoolean(true);
 
         this._writeObj(obj);
         
         this.file.seek(0);
         this.file.writeInt(obj.getId());
+
+        this.file.close();
+    }
+
+    public void write(T obj) throws IOException {
+        this.file = new RandomAccessFile(new File(this.filePath), "rw");
+        this.__initiateDB();
+
+        this.file.seek(0);
+        this.ID = this.file.readInt();
+        
+        if(obj.getId() == -1) {
+            this.ID++;
+            obj.setId(this.ID);
+        }
+
+        if(obj.getId() < this.ID) 
+            throw new IndexOutOfBoundsException("O ID ja existe no arquivo, coloque um ID acima de " + this.ID + ".");
+
+        file.seek(this.file.length());
+        this.file.writeBoolean(true);
+
+        this._writeObj(obj);
+        
+        this.file.seek(0);
+        this.file.writeInt(obj.getId());
+
         this.file.close();
     }
 
@@ -251,7 +283,7 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         this.clear();
         
         while(!arc._isEOF()) 
-            this.write(arc._readObj());
+            this.__unsafeWrite(arc._readObj());
     }
 
     public void toJsonFile(String path) throws IOException {

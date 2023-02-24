@@ -41,7 +41,7 @@ public class Show implements Register, DateFormatter {
 
    // Attributes
 
-   private Integer showId = null; // Auto-incremented ID
+   private int showId = -1; // Auto-incremented ID
    private String type; // Movie or TV Show
    private String title; // Show title
    private String directors; // Show directors
