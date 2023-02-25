@@ -3,6 +3,8 @@ package crud;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import com.opencsv.exceptions.CsvValidationException;
@@ -47,8 +49,8 @@ public class CRUD<T extends Register> {
         this.archive.toJsonFile(path);
     }
 
-    public Boolean contains(int id) throws IOException {
-        return this.archive.search(id) != -1;
+    public Boolean contains(String key, Object value) throws IOException {
+        return this.archive.search(key, value) != -1;
     }
 
     public List<T> read(int startId, int lastId) throws IOException {
@@ -56,7 +58,7 @@ public class CRUD<T extends Register> {
 
         int range = lastId - startId;
         for(int i = 0; i < range; i++) {
-            list.add(this.read(startId + i));
+            list.add(this.read("id", startId + i));
         }
 
         return list;
@@ -70,8 +72,12 @@ public class CRUD<T extends Register> {
         return this.archive.readObj();
     }
 
-    public T read(int id) throws IOException {
-        return this.archive.readObj(id);
+    public T read(String key, Object value) throws IOException {
+        return this.archive.readObj(key, value);
+    }
+
+    public T[] readAllObj(String key, Object value) throws IOException {
+        return this.archive.readAllObj(key, value);
     }
 
     public Boolean update(int id, T obj) throws IOException {
@@ -88,15 +94,45 @@ public class CRUD<T extends Register> {
 
     public static void main(String[] args) throws Exception {
         CRUD<Show> crud = new CRUD<Show>("src/main/java/data/arc.db", Show.class.getConstructor());
-        crud.populateAll("src/main/java/data/netflix_titles.csv");
+        crud.populateAll("src/main/java/data/dat.csv");
         crud.toJsonFile("src/main/java/data/out.json");
 
         System.out.println(crud.delete(56));
         System.out.println(crud.delete(58));
 
-        SortedFile<Show> sorted = new SortedFile<>("src/main/java/data/arc.db", 500, Show.properties.get("title"), Show.class.getConstructor());
-        sorted.sort();
+
+        crud.create(new Show("Movie", "Fernando Campos Silva Dal Maria", "Fabio Freire, Fernando Campos, Vitoria de Lourdes", new Date(System.currentTimeMillis()), (short)2020, "180 min", "Drama, Horror, Comedy", "HAAAAAAAAAAAAAAAAAAAAAAAAAA"));
+
+        System.out.println(Arrays.toString(crud.readAllObj("releaseYear", (short)2020)));
         crud.toJsonFile("src/main/java/data/out1.json");
+
+
+
+
+
+
+
+
+        // WatchTime watch = new WatchTime();
+        // watch.start();
+
+        // SortedFileSecond<Show> sorted = new SortedFileSecond<>("src/main/java/data/arc.db", 500, Show.properties.get("title"), Show.class.getConstructor());
+        // sorted.sort();
+
+        // System.out.println(watch.stop());
+        // crud.toJsonFile("src/main/java/data/out1.json");
+
+
+        // crud.populateAll("src/main/java/data/netflix_titles.csv");
+
+        // watch.reset();
+        // watch.start();
+
+        // SortedFileSecond<Show> sortede = new SortedFileSecond<>("src/main/java/data/arc.db", 500, Show.properties.get("title"), Show.class.getConstructor());
+        // sortede.sort();
+
+        // System.out.println(watch.stop());
+        // crud.toJsonFile("src/main/java/data/out2.json");
     }
 
 }

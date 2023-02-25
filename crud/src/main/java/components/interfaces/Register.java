@@ -1,7 +1,6 @@
 package components.interfaces;
 
 import java.io.IOException;
-
 /**
  * The interface {@code Register} represents a binary register for a {@link crud.BinaryArchive}.
  * @author Fernando Campos Silva Dal Maria & Bruno Santiago de Oliveira
@@ -38,4 +37,11 @@ public interface Register {
     * @param b array of {@code bytes} to populate the register.
     */
    void fromByteArray(byte[] b) throws IOException;
+
+   /**
+    * Compare a Object with the specified Register attribute.
+    * @param key the Register attribute to compare
+    * @param obj the object to compare
+    */
+   int compare(String key, Object obj);
 }

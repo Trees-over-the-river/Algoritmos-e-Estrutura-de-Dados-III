@@ -28,7 +28,7 @@ public class Show implements Register, DateFormatter {
     * Map that corelates a property name with it`s comparator.
     */
    public static final Map<String, Comparator<Show>> properties = new HashMap<String, Comparator<Show>>(){{
-      put("showId", (Show s1, Show s2) -> s1.getId() - s2.getId());
+      put("id", (Show s1, Show s2) -> s1.getId() - s2.getId());
       put("type", (Show s1, Show s2) -> s1.getType().compareTo(s2.getType()));
       put("title", (Show s1, Show s2) -> s1.getTitle().compareTo(s2.getTitle()));
       put("directors", (Show s1, Show s2) -> s1.getDirectors().compareTo(s2.getDirectors()));
@@ -351,5 +351,26 @@ public class Show implements Register, DateFormatter {
    @Override 
    public boolean equals(Object o) {
       return  this.getId() == ((Show)o).getId();
+   }
+
+   /**
+    * Compare a Object with the specified show attribute.
+    * @param key the show attribute to compare
+    * @param obj the object to compare
+    */
+   @Override 
+   public int compare(String key, Object obj) {
+      switch(key) {
+         case "id": return ((Integer)this.getId()).compareTo((Integer)obj);
+         case "type": return this.getType().compareTo((String)obj);
+         case "title": return this.getTitle().compareTo((String)obj);
+         case "directors": return this.getDirectors().compareTo((String)obj);
+         case "dateAdded": return this.getDateAdded().compareTo((Date)obj);
+         case "releaseYear": return ((Short)this.getReleaseYear()).compareTo((Short)obj);
+         case "duration": return this.getDuration().compareTo((String)obj);
+         case "listedIn": return this.getListedIn().compareTo((String)obj);
+         case "description": return this.getDescription().compareTo((String)obj);
+         default: throw new IllegalArgumentException("Invalid key: " + key + " for Show class.");	
+      }
    }
 }

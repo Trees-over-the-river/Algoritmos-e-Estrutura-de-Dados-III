@@ -19,7 +19,7 @@ import err.InsufficientMemoryException;
  * @see {@link components.interfaces.Register}
  * @see {@link crud.BinaryArchive}
  */
-public class SortedFile<T extends Register> extends BinaryArchive<T> {
+public class SortedFileSecond<T extends Register> extends BinaryArchive<T> {
 
     private static final int BLOCK_SIZE = 4096; // 4KB
     private static final int NUMBER_OF_BRANCHES = 4; // Number of branches for the sort algorithm
@@ -45,7 +45,7 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
      * @param constructor the constructor of the register.
      * @throws IOException if an I/O error occurs.
      */
-    public SortedFile(String path, int registerSize, Constructor<T> constructor) throws IOException {
+    public SortedFileSecond(String path, int registerSize, Constructor<T> constructor) throws IOException {
         this(path, registerSize, null, constructor);
     }
 
@@ -57,7 +57,7 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
      * @param constructor the constructor of the register.
      * @throws IOException if an I/O error occurs.
      */
-    public SortedFile(String path, int registerSize, Comparator<T> comparator, Constructor<T> constructor) throws IOException {
+    public SortedFileSecond(String path, int registerSize, Comparator<T> comparator, Constructor<T> constructor) throws IOException {
         super(path, constructor);
 
         if(!path.endsWith(".db")) 
@@ -243,35 +243,42 @@ public class SortedFile<T extends Register> extends BinaryArchive<T> {
      * @param arc the temporary file.
      * @throws IOException if an I/O error occurs.
      */
+    @SuppressWarnings("unchecked")
     private void readRegistersAndWriteOrdered(BinaryArchive<T> arc) throws IOException {
         Boolean[] restrictions = new Boolean[this.originalFiles.length];
         for(int i = 0; i < restrictions.length; i++)
             restrictions[i] = false;
 
-        int[] numberOfReadedRegisters = new int[this.originalFiles.length];
+        T[] prev = (T[])new Register[this.originalFiles.length];
 
         int positionOfMinObj = -1;
         while(!this.__blockWasReaded(restrictions)) {
             T min = null;
 
             for(int i = 0; i < this.originalFiles.length; i++) {
-                if(!this.originalFiles[i]._isEOF() && numberOfReadedRegisters[i] < this.numberOfRegistersPerBlock) {
-                    numberOfReadedRegisters[i]++;
+                if(!this.originalFiles[i]._isEOF() && !restrictions[i]) {
                     T obj = this.originalFiles[i]._readObj();
 
-                    if(min == null) {
-                        min = obj;
-                        positionOfMinObj = i;
-                    } else if(this.comparator.compare(obj, min) < 0) {
+                    if(prev[i] == null) prev[i] = obj;
+
+                    if(this.comparator.compare(prev[i], obj) <= 0) {
+                        if(min == null) {
                             min = obj;
-    
-                            this.originalFiles[positionOfMinObj]._returnOneRegister();
-                            numberOfReadedRegisters[positionOfMinObj]--;
-    
                             positionOfMinObj = i;
+                        } else if(this.comparator.compare(obj, min) < 0) {
+                                min = obj;
+        
+                                this.originalFiles[positionOfMinObj]._returnOneRegister();
+        
+                                positionOfMinObj = i;
+                        } else {
+                            this.originalFiles[i]._returnOneRegister();
+                        }
+
+                        prev[i] = obj;
                     } else {
                         this.originalFiles[i]._returnOneRegister();
-                        numberOfReadedRegisters[i]--;
+                        restrictions[i] = true;
                     }
                 } else restrictions[i] = true;
             }
