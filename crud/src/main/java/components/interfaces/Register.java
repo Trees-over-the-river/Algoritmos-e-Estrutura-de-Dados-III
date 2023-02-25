@@ -6,7 +6,7 @@ import java.io.IOException;
  * @author Fernando Campos Silva Dal Maria & Bruno Santiago de Oliveira
  * @version 1.0.0
  */
-public interface Register {
+public interface Register<T> {
 
    /**
     * Returns the id of the register.
@@ -39,9 +39,23 @@ public interface Register {
    void fromByteArray(byte[] b) throws IOException;
 
    /**
+    * Sets the specified attribute with the given value.
+    * @param key the attribute to set
+    * @param value the value to set
+    * @throws IOException if an I/O error occurs.
+    */
+   void set(String key, Object value);
+
+   /**
     * Compare a Object with the specified Register attribute.
     * @param key the Register attribute to compare
     * @param obj the object to compare
     */
    int compare(String key, Object obj);
+
+   /**
+    * Returns a clone of the register.
+    * @return a clone of the register.
+    */
+   T clone();
 }

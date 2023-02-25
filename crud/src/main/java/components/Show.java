@@ -22,7 +22,7 @@ import java.io.IOException;
  * @see {@link components.interfaces.Register}
  * @see {@link components.interfaces.DateFormatter}
  */
-public class Show implements Register, DateFormatter {
+public class Show implements Register<Show>, DateFormatter {
 
    /**
     * Map that corelates a property name with it`s comparator.
@@ -344,6 +344,27 @@ public class Show implements Register, DateFormatter {
    }
 
    /**
+    * Sets the object especific attribute with the given value.
+    * @param key the attribute name
+    * @param value the attribute value
+    */
+   @Override
+   public void set(String key, Object value) {
+      switch(key) {
+         case "id": this.setId((int)value); break;
+         case "type": this.setType((String)value); break;
+         case "title": this.setTitle((String)value); break;
+         case "directors": this.setDirectors((String)value); break;
+         case "dateAdded": this.setDateAdded((Date)value); break;
+         case "releaseYear": this.setReleaseYear((short)value); break;
+         case "duration": this.setDuration((String)value); break;
+         case "listedIn": this.setListedIn((String)value); break;
+         case "description": this.setDescription((String)value); break;
+         default: throw new IllegalArgumentException("Invalid key: " + key);
+      }
+   }
+
+   /**
     * Determines if this Show object is equal to the specified object.
     * @param o the object to compare
     * @return true if the objects are equal, false otherwise
@@ -372,5 +393,16 @@ public class Show implements Register, DateFormatter {
          case "description": return this.getDescription().compareTo((String)obj);
          default: throw new IllegalArgumentException("Invalid key: " + key + " for Show class.");	
       }
+   }
+
+   /**
+    * Returns a clone of this Show object.
+    * @return a clone of this Show object
+    */
+   @Override 
+   public Show clone() {
+      Show show = new Show(this.getType(), this.getTitle(), this.getDirectors(), this.getDateAdded(), this.getReleaseYear(), this.getDuration(), this.getListedIn(), this.getDescription());
+      show.setId(this.getId());
+      return show;
    }
 }

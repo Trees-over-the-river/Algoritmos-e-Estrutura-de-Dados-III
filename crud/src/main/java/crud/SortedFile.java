@@ -19,7 +19,7 @@ import err.InsufficientMemoryException;
  * @see {@link components.interfaces.Register}
  * @see {@link crud.BinaryArchive}
  */
-public class SortedFile<T extends Register> extends BinaryArchive<T> {
+public class SortedFile<T extends Register<T>> extends BinaryArchive<T> {
 
     private static final int BLOCK_SIZE = 4096; // 4KB
     private static final int NUMBER_OF_BRANCHES = 4; // Number of branches for the sort algorithm

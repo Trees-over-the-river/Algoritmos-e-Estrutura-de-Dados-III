@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 
@@ -12,7 +13,7 @@ import components.interfaces.Register;
 import err.EmptyFileException;
 import err.JsonValidationException;
 
-public class DataBase<T extends Register> extends BinaryArchive<T> {
+public class DataBase<T extends Register<T>> extends BinaryArchive<T> {
     
     private long position = Integer.BYTES;
     private int ID = 0;
@@ -44,11 +45,18 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         return len;
     }
 
-    public Boolean isEmpty() throws IOException {
+    public boolean isEmpty() throws IOException {
         this.file = new RandomAccessFile(this.filePath, "rw");
-        Boolean res = this.file.length() == 0;
+        boolean res = this.file.length() == 0 || this.file.length() == Integer.BYTES;
         this.file.close();
         return res;
+    }
+
+    public boolean isEOF() throws IOException {
+        this.file = new RandomAccessFile(new File(this.filePath), "rw");
+        boolean value = this.position == this.file.length();
+        this.file.close();
+        return value;
     }
 
     public void reset() {
@@ -127,9 +135,9 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
             pos = this.file.getFilePointer();
             lapide = this.file.readBoolean();
             obj = this._readObj();
-        } while(obj.compare(key, value) != 0 && this.file.getFilePointer() < this.file.length());
+        } while((!lapide || obj.compare(key, value) != 0) && this.file.getFilePointer() < this.file.length());
 
-        if(obj == null || obj.compare(key, value) != 0 || !lapide) 
+        if(obj == null || obj.compare(key, value) != 0) 
             pos = -1;
 
         this.file.close();
@@ -197,7 +205,7 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         this.__checkDefaultId();
 
         this.file.seek(Integer.BYTES);
-        ArrayList<T> arr = new ArrayList<T>();
+        ArrayList<T> list = new ArrayList<T>();
 
         boolean lapide = false;
         T obj = null;
@@ -206,14 +214,14 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
             obj = this._readObj();
 
             if(lapide && obj.compare(key, o) == 0)
-                arr.add(obj);
+                list.add(obj);
         } while(this.file.getFilePointer() < this.file.length());
 
         this.file.close();
-        return arr.toArray((T[])new Register[arr.size()]);
+        return list.toArray((T[])Array.newInstance(obj.getClass(), list.size()));
     }
 
-    public Boolean update(int id, T obj) throws IOException {
+    public boolean update(int id, T obj) throws IOException {
         long pos = this.search("id", id);
         this.file = new RandomAccessFile(new File(this.filePath), "rw");
 
@@ -239,7 +247,40 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         return true;
     }
 
-    public Boolean delete(int id) throws IOException {
+    public boolean update(int id, String key, Object value) throws IOException {
+        long pos = this.search("id", id);
+        this.file = new RandomAccessFile(new File(this.filePath), "rw");
+
+        if(pos == -1) 
+            return false;
+
+        this.file.seek(pos);
+        this.file.skipBytes(1);
+        int len = this.file.readInt();
+
+        this.file.seek(pos);
+        this.file.skipBytes(1);
+
+        T obj = this._readObj();
+        obj.set(key, value);
+        byte[] b = obj.toByteArray();
+
+        if(b.length <= len) {
+            this.file.seek(pos);
+            this.file.writeBoolean(true);
+            this.file.writeInt(b.length);
+            this.file.write(b);
+        } else {
+            this.file.seek(pos);
+            this.file.writeBoolean(false);
+            this.__unsafeWrite(obj);
+        }
+
+        this.file.close();
+        return true;
+    }
+
+    public boolean delete(int id) throws IOException {
         long pos = this.search("id", id);
         this.file = new RandomAccessFile(new File(this.filePath), "rw");
         
@@ -282,6 +323,8 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
 
         this.file.seek(0);
         this.ID = this.file.readInt();
+  
+        obj = obj.clone();
         
         if(obj.getId() == -1) {
             this.ID++;
@@ -313,6 +356,8 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         if(!path.endsWith(".json"))
             throw new JsonValidationException("The file at " + path + "is not a JSON file.");
 
+        long tmp = this.position;
+
         BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path)));
         this.reset();
 
@@ -328,6 +373,8 @@ public class DataBase<T extends Register> extends BinaryArchive<T> {
         bw.write("\n]\n");
 
         bw.close();
+
+        this.position = tmp;
     }
 
 }

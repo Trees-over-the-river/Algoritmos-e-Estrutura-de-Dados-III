@@ -14,7 +14,7 @@ import components.interfaces.Register;
  * 
  * @see {@link components.interfaces.Register}
  */
-public class BinaryArchive<T extends Register> {
+public class BinaryArchive<T extends Register<T>> {
 
     // Attributes
 
