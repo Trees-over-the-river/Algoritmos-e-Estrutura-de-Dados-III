@@ -137,7 +137,7 @@ public class DataBase<T extends Register<T>> extends BinaryArchive<T> {
             obj = this._readObj();
         } while((!lapide || obj.compare(key, value) != 0) && this.file.getFilePointer() < this.file.length());
 
-        if(obj == null || obj.compare(key, value) != 0) 
+        if(obj == null || obj.compare(key, value) != 0 || !lapide) 
             pos = -1;
 
         this.file.close();
