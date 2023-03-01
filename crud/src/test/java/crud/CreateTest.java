@@ -28,7 +28,6 @@ public class CreateTest implements ShowInstance {
       value &= s.getListedIn().equals(show.getListedIn());
       value &= s.getDescription().equals(show.getDescription());
 
-      crud.toJsonFile("src/test/java/data/arc.json");
       assertTrue(value);
    }
 
@@ -43,8 +42,6 @@ public class CreateTest implements ShowInstance {
       
       crud.create(show);
       crud.create(nextShow);
-      
-      crud.toJsonFile("src/test/java/data/arc.json");
 
       Show s = crud.read();
       Show showClone = crud.read();

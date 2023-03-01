@@ -1,18 +1,23 @@
 package sorts.intercalation.substitute;
 
-public class SubstitutionHeapNode<T extends Comparable<T>> implements Comparable<SubstitutionHeapNode<T>> {
+import java.util.Comparator;
+
+import components.interfaces.Register;
+
+public class SubstitutionHeapNode<T extends Register<T>> implements Comparable<SubstitutionHeapNode<T>> {
 
     // Atributes
 
     private T item;
     private int weight;
-
+    private Comparator<T> comparator;
 
     // Constructor
 
-    public SubstitutionHeapNode(T item, int weight) {
+    public SubstitutionHeapNode(T item, int weight, Comparator<T> comparator) {
         this.item = item;
         this.weight = weight;
+        this.comparator = comparator;
     }
 
 
@@ -26,7 +31,7 @@ public class SubstitutionHeapNode<T extends Comparable<T>> implements Comparable
     public int compareTo(SubstitutionHeapNode<T> tSubstitutionHeapNode) {
         if (tSubstitutionHeapNode.weight != this.weight)
             return this.weight - tSubstitutionHeapNode.weight;
-        return this.item.compareTo(tSubstitutionHeapNode.item);
+        return comparator.compare(this.item, tSubstitutionHeapNode.item);
     }
 
     // Getters and Setters

@@ -8,6 +8,7 @@ public class MinHeap<T extends Comparable<T>> {
      * Creates a new MinHeap with the given capacity.
      * @param capacity the capacity of the heap
      */
+    @SuppressWarnings("unchecked")
     public MinHeap(int capacity) {
         heap = (T[]) new Comparable[capacity];
         size = 0;

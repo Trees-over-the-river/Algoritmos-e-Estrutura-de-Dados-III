@@ -1,5 +1,6 @@
 package crud;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -7,10 +8,14 @@ import java.util.List;
 
 import com.opencsv.exceptions.CsvValidationException;
 
+import components.Show;
 import components.interfaces.Register;
+import utils.WatchTime;
 import utils.csv.CSVManager;
 
 public class CRUD<T extends Register<T>> {
+    private static final String JSON_FILES_DIRECTORY = "src/main/java/data/json/";
+    private static int FILE_COUNT = 0;
     private final String filePath;
     private DataBase<T> archive;
     private Constructor<T> constructor;
@@ -19,6 +24,9 @@ public class CRUD<T extends Register<T>> {
         this.filePath = path;
         this.archive = new DataBase<T>("Show DataBase", path, constructor);
         this.constructor = constructor;
+
+        File f = new File(JSON_FILES_DIRECTORY);
+        if(!f.exists()) f.mkdir();
     }
 
     public void populateAll(String CSVpath) throws IOException, CsvValidationException {
@@ -42,7 +50,13 @@ public class CRUD<T extends Register<T>> {
         menager.close();
     }
 
-    public void toJsonFile(String path) throws IOException {
+    public void toJsonFile() throws IOException {
+        String path = JSON_FILES_DIRECTORY + "database" + (++FILE_COUNT) + ".json";
+        this.archive.toJsonFile(path);
+    }
+
+    public void toJsonFile(int fileIndex) throws IOException {
+        String path = JSON_FILES_DIRECTORY + "database" + fileIndex + ".json";
         this.archive.toJsonFile(path);
     }
 
@@ -103,5 +117,20 @@ public class CRUD<T extends Register<T>> {
 
     public void clear() throws IOException {
         this.archive.clear();
+    }
+
+    public static void main(String[] args) throws Exception {
+        CRUD<Show> crud = new CRUD<>("src/main/java/data/database.db", Show.class.getConstructor());
+        crud.populateAll("src/main/java/data/bases/netflix_titles.csv");
+        crud.toJsonFile();
+
+        WatchTime watch = new WatchTime();
+
+        watch.start();
+        SortedFileHeap<Show> sorted = new SortedFileHeap<Show>("src/main/java/data/database.db", 500, Show.properties.get("dateAdded"), Show.class.getConstructor());
+        sorted.sort();
+      
+        System.out.println(watch.stop());
+        crud.toJsonFile();
     }
 }

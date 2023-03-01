@@ -12,6 +12,8 @@ import crud.interfaces.ShowInstance;
 
 public class ReadTest implements ShowInstance {
 
+   private static final String basePath = "src/main/java/data/bases/dat.csv";
+
    @Test
    public void testReadCorrectly() throws Exception {
       CRUD<Show> crud = new CRUD<Show>("src/test/java/data/arc.db", Show.class.getConstructor());
@@ -29,14 +31,13 @@ public class ReadTest implements ShowInstance {
       value &= s.getListedIn().equals(show.getListedIn());
       value &= s.getDescription().equals(show.getDescription());
 
-      crud.toJsonFile("src/test/java/data/arc.json");
       assertTrue(value);
    }
 
    @Test
    public void testReadSequential() throws Exception {
       CRUD<Show> crud = new CRUD<Show>("src/test/java/data/arc.db", Show.class.getConstructor());
-      crud.populateAll("src/main/java/data/dat.csv");
+      crud.populateAll(basePath);
 
       Show[] shows = new Show[3];
 
@@ -54,7 +55,7 @@ public class ReadTest implements ShowInstance {
    @Test
    public void testReadInRange() throws Exception {
       CRUD<Show> crud = new CRUD<Show>("src/test/java/data/arc.db", Show.class.getConstructor());
-      crud.populateAll("src/main/java/data/dat.csv");
+      crud.populateAll(basePath);
 
       List<Show> shows = crud.read(1, 4);
       assertTrue(shows.size() == 4);
@@ -63,7 +64,7 @@ public class ReadTest implements ShowInstance {
    @Test
    public void testReadSpecific() throws Exception {
       CRUD<Show> crud = new CRUD<Show>("src/test/java/data/arc.db", Show.class.getConstructor());
-      crud.populateAll("src/main/java/data/dat.csv");
+      crud.populateAll(basePath);
 
       String title = "The Starling";
 
@@ -83,7 +84,7 @@ public class ReadTest implements ShowInstance {
    @Test 
    public void testReadAll() throws Exception {
       CRUD<Show> crud = new CRUD<Show>("src/test/java/data/arc.db", Show.class.getConstructor());
-      crud.populateAll("src/main/java/data/dat.csv");
+      crud.populateAll(basePath);
 
       Show[] shows = crud.readAllObj("type", "Movie");
 
@@ -97,7 +98,7 @@ public class ReadTest implements ShowInstance {
    @Test 
    public void testReadNonExistentRegister() throws Exception {
       CRUD<Show> crud = new CRUD<Show>("src/test/java/data/arc.db", Show.class.getConstructor());
-      crud.populateAll("src/main/java/data/dat.csv");
+      crud.populateAll(basePath);
 
       Show show = crud.read("id", 1000);
       assertTrue(show == null);
